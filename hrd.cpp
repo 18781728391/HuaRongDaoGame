@@ -170,8 +170,55 @@ inline bool canMoveDown(const char &c, const dataT &dta){
 
 dataT moveUp(const char &c, const dataT &dta){
     dataT tmp = dta;
+    int vecPos = tmp.his.size() - 1;
+    if(tmp.his[vecPos].a == c){
+        if(tmp.his[vecPos].c != -1){
+            if(tmp.his[vecPos].c == 'D'){
+                tmp.pos[0].a = -1;
+            }
+        }
+        else if(tmp.his[vecPos].b == 'D'){
+                tmp.pos[0].a = -1;
+        }
+        if(tmp.pos[0].a == -1) return tmp;
+    }
+    char tmpPos = c - 'A';
+    char tmpPosLetter = tmp.pos[tmpPos].a;
+    char tmpVacantPos1 = tmp.pos[10].a, tmpVacantPos2 = tmp.pos[11].a;
+    tmp.pos[tmpPos].a -= 4;
+    if(tmp.pos[tmpPos].ifv){
+        if(tmpPosLetter - 4 == tmpVacantPos1){
+            tmp.pos[10].a += 8;
+        }
+        else if(tmpPosLetter - 4 == tmpVacantPos2){
+            tmp.pos[11].a += 8;
+        }
+    }
+    else if(tmpPos >= 0 && tmpPos <= 5){
+        if(tmpPos == 0){
+            tmp.pos[10].a += 8;
+            tmp.pos[11].a += 8;
+        }
+        else{
+            tmp.pos[10].a += 4;
+            tmp.pos[11].a += 4;
+        }
+    }
+    else{
+        if(tmpPosLetter - 4 == tmpVacantPos1) tmp.pos[10].a += 4;
+        else tmp.pos[11].a += 4;
+    }
+    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'U';
+    else tmp.his.push_back(historyT(c, 'U'));
+    return tmp;
 }
-dataT moveDown(const char &c, const dataT &dta){}
+dataT moveDown(const char &c, const dataT &dta){
+    char tmpPos = c - 'A';
+    char tmpPosLetter = dta.pos[tmpPos].a;
+    char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
+    if()
+        //TODO
+}
 dataT moveLeft(const char &c, const dataT &dta){}
 dataT moveRight(const char &c, const dataT &dta){}
 
