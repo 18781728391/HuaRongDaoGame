@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#define DEBUG
 using namespace std;
 const int MAX_STEP = 200;
 void swap(char &a, char &b){
@@ -12,8 +13,19 @@ void swap(char &a, char &b){
     return;
 }
 
+#ifdef DEBUG
+struct pointPos{
+    int x = 0, y = 0;
+    pointPos(const int innerPos):x(innerPos >> 2),y(innerPos & 3){}
+    pointPos(){}
+};
+#endif
+
 struct historyT{
     char a, b, c;
+#ifdef DEBUG
+    pointPos p[2];
+#endif
     historyT(const char &_a, const char &_b):a(_a), b(_b), c(-1){}
     historyT():a(-1), b(-1), c(-1){}
 };
@@ -32,6 +44,7 @@ set<string> mem; //record the searched parttern
 queue<dataT> Q; //main search Queue
 
 string hashData(const dataT &d){ //[A][VERTICAL_PART][0][HORIZONTAL_PART][SINGLE_PART] ----> 11 chars
+                                //1char|------------ 6 chars------------|---4 chars--
     string res = "";
     char bucket[20] = {0};
     char ver[5], hor[5], single[4], verp = 0, horp = 0, singlep = 0;
@@ -131,8 +144,8 @@ inline bool canMoveUp(const char &c, const dataT &dta){
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     if(tmpVacantPos1 > tmpVacantPos2) swap(tmpVacantPos1, tmpVacantPos2);
-    if(dta.pos[tmpPos].ifv == 1){
-        if(tmpPosLetter - 4 == tmpVacantPos1 || tmpPos - 4 == tmpVacantPos2) return 1;
+    if(tmpPosLetter != 0 && dta.pos[tmpPos].ifv == 1){
+        if(tmpPosLetter - 4 == tmpVacantPos1 || tmpPosLetter - 4 == tmpVacantPos2) return 1;
         else return 0;
     }
     else if(tmpPos >= 0 && tmpPos <= 5){
@@ -171,16 +184,18 @@ inline bool canMoveDown(const char &c, const dataT &dta){
 dataT moveUp(const char &c, const dataT &dta){
     dataT tmp = dta;
     int vecPos = tmp.his.size() - 1;
-    if(tmp.his[vecPos].a == c){
-        if(tmp.his[vecPos].c != -1){
-            if(tmp.his[vecPos].c == 'D'){
-                tmp.pos[0].a = -1;
+    if(vecPos >= 0){
+        if(tmp.his[vecPos].a == c){
+            if(tmp.his[vecPos].c != -1){
+                if(tmp.his[vecPos].c == 'D'){
+                    tmp.pos[0].a = -1;
+                }
             }
+            else if(tmp.his[vecPos].b == 'D'){
+                    tmp.pos[0].a = -1;
+            }
+            if(tmp.pos[0].a == -1) return tmp;
         }
-        else if(tmp.his[vecPos].b == 'D'){
-                tmp.pos[0].a = -1;
-        }
-        if(tmp.pos[0].a == -1) return tmp;
     }
     char tmpPos = c - 'A';
     char tmpPosLetter = tmp.pos[tmpPos].a;
@@ -208,18 +223,33 @@ dataT moveUp(const char &c, const dataT &dta){
         if(tmpPosLetter - 4 == tmpVacantPos1) tmp.pos[10].a += 4;
         else tmp.pos[11].a += 4;
     }
-    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'U';
-    else tmp.his.push_back(historyT(c, 'U'));
+    if(vecPos >= 0 && tmp.his[vecPos].a == c){
+#ifdef DEBUG
+        tmp.his[vecPos].p[0] = pointPos(tmp.pos[10].a);
+        tmp.his[vecPos].p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his[vecPos].c = 'U';
+    }
+    else {
+        historyT h(c, 'U');
+#ifdef DEBUG
+        h.p[0] = pointPos(tmp.pos[10].a);
+        h.p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his.push_back(h);
+    }
     return tmp;
 }
 
 dataT moveDown(const char &c, const dataT &dta){
     dataT tmp = dta;
     int vecPos = tmp.his.size() - 1;
-    if(tmp.his[vecPos].a == c){
-        if(tmp.his[vecPos].b == 'U') tmp.pos[0].a = -1;
-        if(tmp.his[vecPos].c == 'U') tmp.pos[0].a = -1;
-        if(tmp.pos[0].a == -1) return tmp;
+    if(vecPos >= 0){
+        if(tmp.his[vecPos].a == c){
+            if(tmp.his[vecPos].b == 'U') tmp.pos[0].a = -1;
+            if(tmp.his[vecPos].c == 'U') tmp.pos[0].a = -1;
+            if(tmp.pos[0].a == -1) return tmp;
+        }
     }
     char tmpPos = c - 'A';
     char tmpPosLetter = tmp.pos[tmpPos].a;
@@ -238,60 +268,94 @@ dataT moveDown(const char &c, const dataT &dta){
         tmp.pos[11].a -= 4;
     }
     else{
-        if(tmpPosLetter + 4 == tmpVacantPos1) tmp.pos[10] -= 4;
-        else tmp.pos[11] -= 4;
+        if(tmpPosLetter + 4 == tmpVacantPos1) tmp.pos[10].a -= 4;
+        else tmp.pos[11].a -= 4;
     }
-    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'D';
-    else tmp.his.push_back(historyT(c, 'D'));
+    if(vecPos >= 0 && tmp.his[vecPos].a == c){
+#ifdef DEBUG
+        tmp.his[vecPos].p[0] = pointPos(tmp.pos[10].a);
+        tmp.his[vecPos].p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his[vecPos].c = 'D';
+    }
+    else {
+        historyT h(c, 'D');
+#ifdef DEBUG
+        h.p[0] = pointPos(tmp.pos[10].a);
+        h.p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his.push_back(h);
+    }
     return tmp;
 }
 dataT moveLeft(const char &c, const dataT &dta){
     dataT tmp = dta;
     int vecPos = tmp.his.size() - 1;
-    if(tmp.his[vecPos].a == c){
-        if(tmp.his[vecPos].b == 'R') tmp.pos[0].a = -1;
-        if(tmp.his[vecPos].c == 'R') tmp.pos[0].a = -1;
-        if(tmp.pos[0].a == -1) return tmp;
+    if(vecPos >= 0){
+        if(tmp.his[vecPos].a == c){
+            if(tmp.his[vecPos].b == 'R') tmp.pos[0].a = -1;
+            if(tmp.his[vecPos].c == 'R') tmp.pos[0].a = -1;
+            if(tmp.pos[0].a == -1) return tmp;
+        }
     }
     char tmpPos = c - 'A';
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
-    tmp.pos[tmpPos] -= 1;
+    tmp.pos[tmpPos].a -= 1;
     if(tmpPos == 0){
-        tmp.pos[10] += 2;
-        tmp.pos[11] += 2;
+        tmp.pos[10].a += 2;
+        tmp.pos[11].a += 2;
     }
     else if(tmp.pos[tmpPos].ifv){
-        tmp.pos[10] += 1;
-        tmp.pos[11] += 1;
+        tmp.pos[10].a += 1;
+        tmp.pos[11].a += 1;
     }
-    else{
+    else if(tmpPos > 0 && tmpPos <= 5){
         if(tmpPosLetter - 1 == tmpVacantPos1) tmp.pos[10].a += 2;
         else tmp.pos[11].a += 2;
     }
-    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'L';
-    else tmp.his.push_back(historyT(c, 'L'));
+    else{
+        if(tmpPosLetter - 1 == tmpVacantPos1) tmp.pos[10].a += 1;
+        else tmp.pos[11].a += 1;
+    }
+    if(vecPos >= 0 && tmp.his[vecPos].a == c){
+#ifdef DEBUG
+        tmp.his[vecPos].p[0] = pointPos(tmp.pos[10].a);
+        tmp.his[vecPos].p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his[vecPos].c = 'L';
+    }
+    else {
+        historyT h(c, 'L');
+#ifdef DEBUG
+        h.p[0] = pointPos(tmp.pos[10].a);
+        h.p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his.push_back(h);
+    }
     return tmp;
 }
 dataT moveRight(const char &c, const dataT &dta){
     dataT tmp = dta;
     int vecPos = tmp.his.size() - 1;
-    if(tmp.his[vecPos].a == c){
-        if(tmp.his[vecPos].b == 'L') tmp.pos[0].a = -1;
-        if(tmp.his[vecPos].c == 'L') tmp.pos[0].a = -1;
-        if(tmp.pos[0].a == -1) return tmp;
+    if(vecPos >= 0){
+        if(tmp.his[vecPos].a == c){
+            if(tmp.his[vecPos].b == 'L') tmp.pos[0].a = -1;
+            if(tmp.his[vecPos].c == 'L') tmp.pos[0].a = -1;
+            if(tmp.pos[0].a == -1) return tmp;
+        }
     }
     char tmpPos = c - 'A';
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     tmp.pos[tmpPos].a += 1;
     if(tmpPos == 0){
-        tmp.pos[10] -= 2;
-        tmp.pos[11] -= 2;
+        tmp.pos[10].a -= 2;
+        tmp.pos[11].a -= 2;
     }
     else if(tmp.pos[tmpPos].ifv){
-        tmp.pos[10] -= 1;
-        tmp.pos[11] -= 1;
+        tmp.pos[10].a -= 1;
+        tmp.pos[11].a -= 1;
     }
     else if(tmpPosLetter > 0 && tmpPosLetter <= 5){
         if(tmpPosLetter + 2 == tmpVacantPos1) tmp.pos[10].a -= 2;
@@ -301,8 +365,21 @@ dataT moveRight(const char &c, const dataT &dta){
         if(tmpPosLetter + 1 == tmpVacantPos1) tmp.pos[10].a -= 1;
         else tmp.pos[11].a -= 1;
     }
-    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'R';
-    else tmp.his.push_back(historyT(c, 'R'));
+    if(vecPos >= 0 && tmp.his[vecPos].a == c){
+#ifdef DEBUG
+        tmp.his[vecPos].p[0] = pointPos(tmp.pos[10].a);
+        tmp.his[vecPos].p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his[vecPos].c = 'R';
+    }
+    else {
+        historyT h(c, 'R');
+#ifdef DEBUG
+        h.p[0] = pointPos(tmp.pos[10].a);
+        h.p[1] = pointPos(tmp.pos[11].a);
+#endif
+        tmp.his.push_back(h);
+    }
     return tmp;
 }
 
@@ -310,23 +387,20 @@ int main(){
     dataT tmp = getData(), tmp1;
     Q.push(tmp);
     while(!Q.empty()){
+         cout << Q.size() <<" ";
         tmp = Q.front();
         Q.pop();
         for(int i = 0; i < 12; ++i){
-            if(canMoveUp('A' + i, tmp)){
-                tmp1 = moveUp('A' + i, tmp);
-                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1); // let pos[0].a = -1 when cut branch
-            }
-            if(canMoveLeft('A' + i, tmp)){
-                tmp1 = moveLeft('A' + i, tmp);
+            if(canMoveDown('A' + i, tmp)){
+                tmp1 = moveDown('A' + i, tmp);
                 if(tmp1.pos[0].a == 13){
                     tmp = tmp1;
                     break;
                 }
                 if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
             }
-            if(canMoveDown('A' + i, tmp)){
-                tmp1 = moveDown('A' + i, tmp);
+            if(canMoveLeft('A' + i, tmp)){
+                tmp1 = moveLeft('A' + i, tmp);
                 if(tmp1.pos[0].a == 13){
                     tmp = tmp1;
                     break;
@@ -341,15 +415,27 @@ int main(){
                 }
                 if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
             }
+            if(canMoveUp('A' + i, tmp)){
+                tmp1 = moveUp('A' + i, tmp);
+                if(tmp1.pos[0].a == 13){
+                    tmp = tmp1;
+                    break;
+                }
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1); // let pos[0].a = -1 when cut branch
+            }
         }
         if(tmp.pos[0].a == 13) break;
     }
     cout << tmp.his.size() << "\n";
     for(int i = 0; i < tmp.his.size(); ++i){
-        cout << tmp.his[i].a- << " ";
+        cout << tmp.his[i].a << " ";
         cout << tmp.his[i].b;
-        if(tmp.his[i].c) cout << tmp.his[i].c;
+        if(tmp.his[i].c != -1) cout << tmp.his[i].c;
         cout << "\n";
+#ifdef DEBUG
+        cout << "VACANPOS1: " << tmp.his[i].p[0].x << ":" << tmp.his[i].p[0].y << "\n";
+        cout << "VACANPOS1: " << tmp.his[i].p[1].x << ":" << tmp.his[i].p[1].y << "\n";
+#endif
     }
 }
 
