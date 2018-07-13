@@ -5,7 +5,7 @@
 #include <algorithm>
 //#define DEBUG
 using namespace std;
-const int MAX_STEP = 100;
+const int MAX_STEP = 200;
 void swap(char &a, char &b){
     char tmp = a;
     a = b;
@@ -389,7 +389,7 @@ int main(){
         // cout << Q.size() <<" ";
         tmp = Q.front();
         Q.pop();
-        for(int i = 11; i >= 0; --i){
+        for(int i = 0; i < 12; ++i){
             if(canMoveLeft('A' + i, tmp)){
                 tmp1 = moveLeft('A' + i, tmp);
                 if(tmp1.pos[0].a == 13){
