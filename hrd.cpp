@@ -4,7 +4,7 @@
 #include <queue>
 #include <algorithm>
 using namespace std;
-
+const int MAX_STEP = 200;
 void swap(char &a, char &b){
     char tmp = a;
     a = b;
@@ -212,15 +212,99 @@ dataT moveUp(const char &c, const dataT &dta){
     else tmp.his.push_back(historyT(c, 'U'));
     return tmp;
 }
+
 dataT moveDown(const char &c, const dataT &dta){
+    dataT tmp = dta;
+    int vecPos = tmp.his.size() - 1;
+    if(tmp.his[vecPos].a == c){
+        if(tmp.his[vecPos].b == 'U') tmp.pos[0].a = -1;
+        if(tmp.his[vecPos].c == 'U') tmp.pos[0].a = -1;
+        if(tmp.pos[0].a == -1) return tmp;
+    }
+    char tmpPos = c - 'A';
+    char tmpPosLetter = tmp.pos[tmpPos].a;
+    char tmpVacantPos1 = tmp.pos[10].a, tmpVacantPos2 = tmp.pos[11].a;
+     tmp.pos[tmpPos].a += 4;
+    if(tmp.pos[tmpPos].ifv){
+        if(tmpPosLetter + 8 == tmpVacantPos1) tmp.pos[10].a -= 8;
+        else tmp.pos[11].a -= 8;
+    }
+    else if(tmpPos == 0){
+        tmp.pos[10].a -= 8;
+        tmp.pos[11].a -= 8;
+    }
+    else if(tmpPos > 0 && tmpPos <= 5){
+        tmp.pos[10].a -= 4;
+        tmp.pos[11].a -= 4;
+    }
+    else{
+        if(tmpPosLetter + 4 == tmpVacantPos1) tmp.pos[10] -= 4;
+        else tmp.pos[11] -= 4;
+    }
+    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'D';
+    else tmp.his.push_back(historyT(c, 'D'));
+    return tmp;
+}
+dataT moveLeft(const char &c, const dataT &dta){
+    dataT tmp = dta;
+    int vecPos = tmp.his.size() - 1;
+    if(tmp.his[vecPos].a == c){
+        if(tmp.his[vecPos].b == 'R') tmp.pos[0].a = -1;
+        if(tmp.his[vecPos].c == 'R') tmp.pos[0].a = -1;
+        if(tmp.pos[0].a == -1) return tmp;
+    }
     char tmpPos = c - 'A';
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
-    if()
-        //TODO
+    tmp.pos[tmpPos] -= 1;
+    if(tmpPos == 0){
+        tmp.pos[10] += 2;
+        tmp.pos[11] += 2;
+    }
+    else if(tmp.pos[tmpPos].ifv){
+        tmp.pos[10] += 1;
+        tmp.pos[11] += 1;
+    }
+    else{
+        if(tmpPosLetter - 1 == tmpVacantPos1) tmp.pos[10].a += 2;
+        else tmp.pos[11].a += 2;
+    }
+    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'L';
+    else tmp.his.push_back(historyT(c, 'L'));
+    return tmp;
 }
-dataT moveLeft(const char &c, const dataT &dta){}
-dataT moveRight(const char &c, const dataT &dta){}
+dataT moveRight(const char &c, const dataT &dta){
+    dataT tmp = dta;
+    int vecPos = tmp.his.size() - 1;
+    if(tmp.his[vecPos].a == c){
+        if(tmp.his[vecPos].b == 'L') tmp.pos[0].a = -1;
+        if(tmp.his[vecPos].c == 'L') tmp.pos[0].a = -1;
+        if(tmp.pos[0].a == -1) return tmp;
+    }
+    char tmpPos = c - 'A';
+    char tmpPosLetter = dta.pos[tmpPos].a;
+    char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
+    tmp.pos[tmpPos].a += 1;
+    if(tmpPos == 0){
+        tmp.pos[10] -= 2;
+        tmp.pos[11] -= 2;
+    }
+    else if(tmp.pos[tmpPos].ifv){
+        tmp.pos[10] -= 1;
+        tmp.pos[11] -= 1;
+    }
+    else if(tmpPosLetter > 0 && tmpPosLetter <= 5){
+        if(tmpPosLetter + 2 == tmpVacantPos1) tmp.pos[10].a -= 2;
+        else tmp.pos[11].a -= 2;
+    }
+    else{
+        if(tmpPosLetter + 1 == tmpVacantPos1) tmp.pos[10].a -= 1;
+        else tmp.pos[11].a -= 1;
+    }
+    if(tmp.his[vecPos].a == c) tmp.his[vecPos].c = 'R';
+    else tmp.his.push_back(historyT(c, 'R'));
+    return tmp;
+}
 
 int main(){
     dataT tmp = getData(), tmp1;
@@ -231,7 +315,7 @@ int main(){
         for(int i = 0; i < 12; ++i){
             if(canMoveUp('A' + i, tmp)){
                 tmp1 = moveUp('A' + i, tmp);
-                if(tmp1.pos[0].a != -1) Q.push(tmp1); // let pos[0].a = -1 when cut branch
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1); // let pos[0].a = -1 when cut branch
             }
             if(canMoveLeft('A' + i, tmp)){
                 tmp1 = moveLeft('A' + i, tmp);
@@ -239,7 +323,7 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1) Q.push(tmp1);
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
             }
             if(canMoveDown('A' + i, tmp)){
                 tmp1 = moveDown('A' + i, tmp);
@@ -247,7 +331,7 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1) Q.push(tmp1);
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
             }
             if(canMoveRight('A' + i, tmp)){
                 tmp1 = moveRight('A' + i, tmp);
@@ -255,14 +339,14 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1) Q.push(tmp1);
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
             }
         }
         if(tmp.pos[0].a == 13) break;
     }
     cout << tmp.his.size() << "\n";
     for(int i = 0; i < tmp.his.size(); ++i){
-        cout << tmp.his[i].a << " ";
+        cout << tmp.his[i].a- << " ";
         cout << tmp.his[i].b;
         if(tmp.his[i].c) cout << tmp.his[i].c;
         cout << "\n";
