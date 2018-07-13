@@ -40,8 +40,15 @@ struct dataT{
     vector<historyT> his;
 };
 
+class cmp{
+public:
+    bool operator()(const dataT &a, const dataT &b){
+        return a.his.size() > b.his.size();
+    }
+};
+
 set<string> mem; //record the searched parttern
-queue<dataT> Q; //main search Queue
+priority_queue<dataT, vector<dataT>, cmp> Q; //main search Queue
 
 string hashData(const dataT &d){ //[A][VERTICAL_PART][0][HORIZONTAL_PART][SINGLE_PART] ----> 11 chars
                                 //1char|------------ 6 chars------------|---4 chars--
@@ -386,8 +393,7 @@ int main(){
     dataT tmp = getData(), tmp1;
     Q.push(tmp);
     while(!Q.empty()){
-        // cout << Q.size() <<" ";
-        tmp = Q.front();
+        tmp = Q.top();
         Q.pop();
         for(int i = 0; i < 12; ++i){
             if(canMoveLeft('A' + i, tmp)){
