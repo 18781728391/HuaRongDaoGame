@@ -117,7 +117,7 @@ inline bool canMoveLeft(const char &c, const dataT &dta){
         else return 0;
     }
     else{
-        if((tmpPosLetter - 1 == tmpVacantPos1 && ((tmpPosLetter) >> 2) == (tmpVacantPos1 >> 2)) || (tmpPosLetter - 1 == tmpVacantPos2 && ((tmpPosLetter) >> 2) == (tmpVacantPos2 >> 2))) return 1;
+        if((tmpPosLetter - 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == (tmpVacantPos1 >> 2)) || (tmpPosLetter - 1 == tmpVacantPos2 && (tmpPosLetter >> 2) == (tmpVacantPos2 >> 2))) return 1;
         else return 0;
     }
 }
@@ -127,19 +127,19 @@ inline bool canMoveRight(const char &c, const dataT &dta){
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     if(tmpVacantPos1 > tmpVacantPos2) swap(tmpVacantPos1, tmpVacantPos2);
     if(c == 'A'){
-        if(tmpPosLetter + 2 == tmpVacantPos1 && tmpPosLetter >> 2 == tmpVacantPos1 >> 2 && tmpPosLetter + 6 == tmpVacantPos2 && (tmpPosLetter >> 2) + 1 == tmpVacantPos2 >> 2) return 1;
+        if(tmpPosLetter + 2 == tmpVacantPos1 && (tmpPosLetter >> 2) == (tmpVacantPos1 >> 2) && tmpPosLetter + 6 == tmpVacantPos2 && (tmpPosLetter >> 2) + 1 == tmpVacantPos2 >> 2) return 1;
         else return 0;
     }
     else if(dta.pos[tmpPos].ifv){
-        if((tmpPosLetter + 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == tmpVacantPos1 >> 2) && tmpPosLetter + 5 == tmpVacantPos2 && ((tmpPosLetter >> 2) + 1 == tmpVacantPos2 >> 2)) return 1;
+        if((tmpPosLetter + 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == (tmpVacantPos1 >> 2)) && tmpPosLetter + 5 == tmpVacantPos2 && ((tmpPosLetter >> 2) + 1 == tmpVacantPos2 >> 2)) return 1;
         else return 0;
     }
     else if(tmpPos <= 5 && tmpPos > 0){
-        if((tmpPosLetter + 2 == tmpVacantPos1 && (tmpPosLetter >> 2) == tmpVacantPos1 >> 2) || (tmpPosLetter + 2 == tmpVacantPos2 && (tmpPosLetter >> 2) == tmpVacantPos2 >> 2)) return 1;
+        if((tmpPosLetter + 2 == tmpVacantPos1 && (tmpPosLetter >> 2) == (tmpVacantPos1 >> 2)) || (tmpPosLetter + 2 == tmpVacantPos2 && (tmpPosLetter >> 2) == tmpVacantPos2 >> 2)) return 1;
         else return 0;
     }
     else{
-        if((tmpPosLetter + 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == tmpVacantPos1 >> 2) || (tmpPosLetter + 1 == tmpVacantPos2 && (tmpPosLetter >> 2) == tmpVacantPos2 >> 2)) return 1;
+        if((tmpPosLetter + 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == (tmpVacantPos1 >> 2)) || (tmpPosLetter + 1 == tmpVacantPos2 && (tmpPosLetter >> 2) == tmpVacantPos2 >> 2)) return 1;
         else return 0;
     }
 }
@@ -149,7 +149,7 @@ inline bool canMoveUp(const char &c, const dataT &dta){
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     if(tmpVacantPos1 > tmpVacantPos2) swap(tmpVacantPos1, tmpVacantPos2);
-    if(tmpPosLetter != 0 && dta.pos[tmpPos].ifv == 1){
+    if(tmpPos != 0 && dta.pos[tmpPos].ifv == 1){
         if(tmpPosLetter - 4 == tmpVacantPos1 || tmpPosLetter - 4 == tmpVacantPos2) return 1;
         else return 0;
     }
@@ -389,15 +389,7 @@ int main(){
         // cout << Q.size() <<" ";
         tmp = Q.front();
         Q.pop();
-        for(int i = 0; i < 12; ++i){
-            if(canMoveDown('A' + i, tmp)){
-                tmp1 = moveDown('A' + i, tmp);
-                if(tmp1.pos[0].a == 13){
-                    tmp = tmp1;
-                    break;
-                }
-                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1);
-            }
+        for(int i = 11; i >= 0; --i){
             if(canMoveLeft('A' + i, tmp)){
                 tmp1 = moveLeft('A' + i, tmp);
                 if(tmp1.pos[0].a == 13){
@@ -406,8 +398,8 @@ int main(){
                 }
                 if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1);
             }
-            if(canMoveRight('A' + i, tmp)){
-                tmp1 = moveRight('A' + i, tmp);
+            if(canMoveDown('A' + i, tmp)){
+                tmp1 = moveDown('A' + i, tmp);
                 if(tmp1.pos[0].a == 13){
                     tmp = tmp1;
                     break;
@@ -421,6 +413,14 @@ int main(){
                     break;
                 }
                 if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1); // let pos[0].a = -1 when cut branch
+            }
+            if(canMoveRight('A' + i, tmp)){
+                tmp1 = moveRight('A' + i, tmp);
+                if(tmp1.pos[0].a == 13){
+                    tmp = tmp1;
+                    break;
+                }
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1);
             }
         }
         if(tmp.pos[0].a == 13) break;
