@@ -3,9 +3,9 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
-#define DEBUG
+//#define DEBUG
 using namespace std;
-const int MAX_STEP = 200;
+const int MAX_STEP = 100;
 void swap(char &a, char &b){
     char tmp = a;
     a = b;
@@ -113,11 +113,11 @@ inline bool canMoveLeft(const char &c, const dataT &dta){
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     if(tmpVacantPos1 > tmpVacantPos2) swap(tmpVacantPos1, tmpVacantPos2);
     if(c == 'A' || dta.pos[tmpPos].ifv){
-        if(tmpPosLetter - 1 == tmpVacantPos1 && tmpPosLetter + 3 == tmpVacantPos2) return 1;
+        if((tmpPosLetter - 1 == tmpVacantPos1) && (tmpPosLetter + 3 == tmpVacantPos2) && ((tmpPosLetter >> 2) == (tmpVacantPos1 >> 2)) && (((tmpPosLetter) >> 2) + 1 == (tmpVacantPos2 >> 2))) return 1;
         else return 0;
     }
     else{
-        if(tmpPosLetter - 1 == tmpVacantPos1 || tmpPosLetter - 1 == tmpVacantPos2) return 1;
+        if((tmpPosLetter - 1 == tmpVacantPos1 && ((tmpPosLetter) >> 2) == (tmpVacantPos1 >> 2)) || (tmpPosLetter - 1 == tmpVacantPos2 && ((tmpPosLetter) >> 2) == (tmpVacantPos2 >> 2))) return 1;
         else return 0;
     }
 }
@@ -126,19 +126,24 @@ inline bool canMoveRight(const char &c, const dataT &dta){
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     if(tmpVacantPos1 > tmpVacantPos2) swap(tmpVacantPos1, tmpVacantPos2);
-    if(c == 'A' || dta.pos[tmpPos].ifv){
-        if(tmpPosLetter + 2 == tmpVacantPos1 && tmpPosLetter + 6 == tmpVacantPos2) return 1;
+    if(c == 'A'){
+        if(tmpPosLetter + 2 == tmpVacantPos1 && tmpPosLetter >> 2 == tmpVacantPos1 >> 2 && tmpPosLetter + 6 == tmpVacantPos2 && (tmpPosLetter >> 2) + 1 == tmpVacantPos2 >> 2) return 1;
         else return 0;
     }
-    else if(tmpPosLetter <= 5 && tmpPosLetter >= 0){
-        if(tmpPosLetter + 2 == tmpVacantPos1 || tmpPosLetter + 2 == tmpVacantPos2) return 1;
+    else if(dta.pos[tmpPos].ifv){
+        if((tmpPosLetter + 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == tmpVacantPos1 >> 2) && tmpPosLetter + 5 == tmpVacantPos2 && ((tmpPosLetter >> 2) + 1 == tmpVacantPos2 >> 2)) return 1;
+        else return 0;
+    }
+    else if(tmpPos <= 5 && tmpPos > 0){
+        if((tmpPosLetter + 2 == tmpVacantPos1 && (tmpPosLetter >> 2) == tmpVacantPos1 >> 2) || (tmpPosLetter + 2 == tmpVacantPos2 && (tmpPosLetter >> 2) == tmpVacantPos2 >> 2)) return 1;
         else return 0;
     }
     else{
-        if(tmpPosLetter + 1 == tmpVacantPos1 || tmpPosLetter + 1 == tmpVacantPos2) return 1;
+        if((tmpPosLetter + 1 == tmpVacantPos1 && (tmpPosLetter >> 2) == tmpVacantPos1 >> 2) || (tmpPosLetter + 1 == tmpVacantPos2 && (tmpPosLetter >> 2) == tmpVacantPos2 >> 2)) return 1;
         else return 0;
     }
 }
+
 inline bool canMoveUp(const char &c, const dataT &dta){
     char tmpPos = c - 'A';
     char tmpPosLetter = dta.pos[tmpPos].a;
@@ -162,12 +167,12 @@ inline bool canMoveDown(const char &c, const dataT &dta){
     char tmpPosLetter = dta.pos[tmpPos].a;
     char tmpVacantPos1 = dta.pos[10].a, tmpVacantPos2 = dta.pos[11].a;
     if(tmpVacantPos1 > tmpVacantPos2) swap(tmpVacantPos1, tmpVacantPos2);
-    if(dta.pos[tmpPos].ifv){
-        if(tmpPosLetter + 8 == tmpVacantPos1 || tmpPosLetter + 8 == tmpVacantPos2) return 1;
+    if(c == 'A'){
+        if(tmpPosLetter + 8 == tmpVacantPos1 && tmpPosLetter + 9 == tmpVacantPos2) return 1;
         else return 0;
     }
-    else if(tmpPos == 0){
-        if(tmpPosLetter + 8 == tmpVacantPos1 && tmpPosLetter + 9 == tmpVacantPos2) return 1;
+    else if(dta.pos[tmpPos].ifv){
+        if(tmpPosLetter + 8 == tmpVacantPos1 || tmpPosLetter + 8 == tmpVacantPos2) return 1;
         else return 0;
     }
     else if(tmpPos > 0  && tmpPos <= 5){
@@ -201,23 +206,17 @@ dataT moveUp(const char &c, const dataT &dta){
     char tmpPosLetter = tmp.pos[tmpPos].a;
     char tmpVacantPos1 = tmp.pos[10].a, tmpVacantPos2 = tmp.pos[11].a;
     tmp.pos[tmpPos].a -= 4;
-    if(tmp.pos[tmpPos].ifv){
-        if(tmpPosLetter - 4 == tmpVacantPos1){
-            tmp.pos[10].a += 8;
-        }
-        else if(tmpPosLetter - 4 == tmpVacantPos2){
-            tmp.pos[11].a += 8;
-        }
+    if(tmpPos == 0){
+        tmp.pos[10].a += 8;
+        tmp.pos[11].a += 8;
     }
-    else if(tmpPos >= 0 && tmpPos <= 5){
-        if(tmpPos == 0){
-            tmp.pos[10].a += 8;
-            tmp.pos[11].a += 8;
-        }
-        else{
-            tmp.pos[10].a += 4;
-            tmp.pos[11].a += 4;
-        }
+    else if(tmp.pos[tmpPos].ifv){
+        if(tmpPosLetter - 4 == tmpVacantPos1) tmp.pos[10].a += 8;
+        else tmp.pos[11].a += 8;
+    }
+    else if(tmpPos > 0 && tmpPos <= 5){
+        tmp.pos[10].a += 4;
+        tmp.pos[11].a += 4;
     }
     else{
         if(tmpPosLetter - 4 == tmpVacantPos1) tmp.pos[10].a += 4;
@@ -255,13 +254,13 @@ dataT moveDown(const char &c, const dataT &dta){
     char tmpPosLetter = tmp.pos[tmpPos].a;
     char tmpVacantPos1 = tmp.pos[10].a, tmpVacantPos2 = tmp.pos[11].a;
      tmp.pos[tmpPos].a += 4;
-    if(tmp.pos[tmpPos].ifv){
+    if(tmpPos == 0){
+         tmp.pos[10].a -= 8;
+         tmp.pos[11].a -= 8;
+     }
+    else if(tmp.pos[tmpPos].ifv){
         if(tmpPosLetter + 8 == tmpVacantPos1) tmp.pos[10].a -= 8;
         else tmp.pos[11].a -= 8;
-    }
-    else if(tmpPos == 0){
-        tmp.pos[10].a -= 8;
-        tmp.pos[11].a -= 8;
     }
     else if(tmpPos > 0 && tmpPos <= 5){
         tmp.pos[10].a -= 4;
@@ -357,7 +356,7 @@ dataT moveRight(const char &c, const dataT &dta){
         tmp.pos[10].a -= 1;
         tmp.pos[11].a -= 1;
     }
-    else if(tmpPosLetter > 0 && tmpPosLetter <= 5){
+    else if(tmpPos > 0 && tmpPos <= 5){
         if(tmpPosLetter + 2 == tmpVacantPos1) tmp.pos[10].a -= 2;
         else tmp.pos[11].a -= 2;
     }
@@ -387,7 +386,7 @@ int main(){
     dataT tmp = getData(), tmp1;
     Q.push(tmp);
     while(!Q.empty()){
-         cout << Q.size() <<" ";
+        // cout << Q.size() <<" ";
         tmp = Q.front();
         Q.pop();
         for(int i = 0; i < 12; ++i){
@@ -397,7 +396,7 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1);
             }
             if(canMoveLeft('A' + i, tmp)){
                 tmp1 = moveLeft('A' + i, tmp);
@@ -405,7 +404,7 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1);
             }
             if(canMoveRight('A' + i, tmp)){
                 tmp1 = moveRight('A' + i, tmp);
@@ -413,7 +412,7 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1);
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1);
             }
             if(canMoveUp('A' + i, tmp)){
                 tmp1 = moveUp('A' + i, tmp);
@@ -421,7 +420,7 @@ int main(){
                     tmp = tmp1;
                     break;
                 }
-                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.count(hashData(tmp1)) == 0) Q.push(tmp1); // let pos[0].a = -1 when cut branch
+                if(tmp1.pos[0].a != -1 && tmp1.his.size() < MAX_STEP && mem.insert(hashData(tmp1)).second) Q.push(tmp1); // let pos[0].a = -1 when cut branch
             }
         }
         if(tmp.pos[0].a == 13) break;
