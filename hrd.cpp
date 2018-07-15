@@ -42,8 +42,8 @@ struct dataT{
 
 class cmp{
 public:
-    bool operator()(const dataT &a, const dataT &b){
-        return a.his.size() > b.his.size();
+    inline bool operator()(const dataT &a, const dataT &b){
+        return a.his.size() >= b.his.size();
     }
 };
 
@@ -395,7 +395,7 @@ int main(){
     while(!Q.empty()){
         tmp = Q.top();
         Q.pop();
-        for(int i = 0; i < 12; ++i){
+        for(int i = 0; i < 11; ++i){
             if(canMoveLeft('A' + i, tmp)){
                 tmp1 = moveLeft('A' + i, tmp);
                 if(tmp1.pos[0].a == 13){
